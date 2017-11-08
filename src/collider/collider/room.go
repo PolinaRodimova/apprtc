@@ -65,7 +65,7 @@ func (rm *room) register(clientID string, rwc io.ReadWriteCloser) error {
 	}
 
 	log.Printf("Client %s registered in room %s", clientID, rm.id)
-
+	writeStats("register")
 	// Sends the queued messages from the other client of the room.
 	if len(rm.clients) > 1 {
 		for _, otherClient := range rm.clients {
@@ -90,6 +90,7 @@ func (rm *room) send(srcClientID string, msg string) error {
 	// Send the message to the other client of the room.
 	for _, oc := range rm.clients {
 		if oc.id != srcClientID {
+			writeStats("send")
 			return src.send(oc, msg)
 		}
 	}
@@ -104,7 +105,7 @@ func (rm *room) remove(clientID string) {
 		c.deregister()
 		delete(rm.clients, clientID)
 		log.Printf("Removed client %s from room %s", clientID, rm.id)
-
+		writeStats("remove")
 		// Send bye to the room Server.
 		resp, err := http.Post(rm.roomSrvUrl+"/bye/"+rm.id+"/"+clientID, "text", nil)
 		if err != nil {
